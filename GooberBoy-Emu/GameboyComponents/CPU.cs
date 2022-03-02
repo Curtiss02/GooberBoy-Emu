@@ -41,42 +41,26 @@ namespace GooberBoy_Emu.GameboyComponents
         // HELPER FUNCTIONS
         void add_set_flags(byte a, byte b)
         {
-            if(byte.MaxValue - a < b)
-            {
-                setCarryFlag(true);
-            }
-            else
-            {
-                setCarryFlag(false);
-            }
-            if((a & 0xf + b & 0xf & 0x10) > 0){
-                setHalfCarryFlag(true);
-            }
-            else
-            {
-                setHalfCarryFlag((false));
-            }
 
-            if (a + b == 0)
-            {
-                setZeroFlag(true);
-            }
-            else
-            {
-                setZeroFlag(false);
-            }
+            setCarryFlag(byte.MaxValue - a < b);
+            setHalfCarryFlag((a & 0xf + b & 0xf & 0x10) > 0);
+            setZeroFlag(a + b == 0);
             setNegativeFlag(false);
+        }
+
+        void add_16_set_flags(ushort a, ushort b)
+        {
+
+            setCarryFlag(ushort.MaxValue - a < b);
+            setCarryFlag(false);
+            setHalfCarryFlag((a >> 8 & 0x0f + b >> 8 & 0x0f & 0x10) > 0);
+            setNegativeFlag(false);
+            
         }
         void and_set_flags(byte a, byte b)
         {
-            if ((a & b) == 0)
-            {
-                setZeroFlag(true);
-            }
-            else
-            {
-                setZeroFlag(false);
-            }
+
+            setZeroFlag((a & b) == 0);
             setNegativeFlag(false);
             setHalfCarryFlag(true);
             setCarryFlag(false);
@@ -84,87 +68,31 @@ namespace GooberBoy_Emu.GameboyComponents
 
         void sub_set_flags(byte a, byte b)
         {
-            if (b > a)
-            {
-                setCarryFlag(true);
-            }
-            else
-            {
-                setCarryFlag(false);
-            }
-
-            if (((a & 0xf) - (b & 0xf) & 0x10) > 0)
-            {
-                setHalfCarryFlag(true);
-            }
-            else
-            {
-                setHalfCarryFlag(false);
-            }
-
-            if (a - b == 0)
-            {
-                setZeroFlag(true);
-            }
-            else
-            {
-                setZeroFlag(false);
-            }
+            setCarryFlag(b > a);
+            setHalfCarryFlag(((a & 0xf) - (b & 0xf) & 0x10) > 0);
+            setZeroFlag(a - b == 0);
             setNegativeFlag(true);
         }
 
         void dec_set_flags(byte a)
         {
-            if ((((a & 0xf) - 1) & 0x10) > 0)
-            {
-                setHalfCarryFlag(true);
-            }
-            else
-            {
-                setHalfCarryFlag(false);
-            }
 
-            if (a == 0x1)
-            {
-                setZeroFlag(true);
-            }
-            else
-            {
-                setZeroFlag(false);
-            }
+            setHalfCarryFlag((((a & 0xf) - 1) & 0x10) > 0);
+            setZeroFlag(a == 0x1);
             setNegativeFlag(true);
         }
         void inc_set_flags(byte a)
         {
-            if ((((a & 0xf) + 1) & 0x10) > 0)
-            {
-                setHalfCarryFlag(true);
-            }
-            else
-            {
-                setHalfCarryFlag(false);
-            }
-            if (a == 0xff)
-            {
-                setZeroFlag(true);
-            }
-            else
-            {
-                setZeroFlag(false);
-            }
+            setHalfCarryFlag((((a & 0xf) + 1) & 0x10) > 0);
+            setZeroFlag(a == 0xff);
             setNegativeFlag(false);
         }
 
         void or_set_flags(byte a, byte b)
         {
-            if ((a | b) == 0)
-            {
-                setZeroFlag(true);
-            }
-            else
-            {
-                setZeroFlag(false);
-            }
+
+            setZeroFlag((a | b) == 0);
+
             setCarryFlag(false);
             setHalfCarryFlag(false);
             setNegativeFlag(false);
@@ -172,14 +100,8 @@ namespace GooberBoy_Emu.GameboyComponents
 
         void xor_set_flags(byte a, byte b)
         {
-            if ((a ^ b) == 0)
-            {
-                setZeroFlag(true);
-            }
-            else
-            {
-                setZeroFlag(false);
-            }
+
+            setZeroFlag((a ^ b) == 0);
             setCarryFlag(false);
             setHalfCarryFlag(false);
             setNegativeFlag(false);
@@ -188,20 +110,20 @@ namespace GooberBoy_Emu.GameboyComponents
         // CPU OPERATIONS
         void adc_a_r8(byte r8)
         {
-            AF.Upper += (byte)(r8 + getCarryFlagByte());
-            add_set_flags(AF.Upper, (byte)(r8 + getCarryFlagByte()));
+            AF.Upper += (byte)(r8 + getCarryFlagBit());
+            add_set_flags(AF.Upper, (byte)(r8 + getCarryFlagBit()));
         }
 
         void adc_a_hl()
         { 
-            AF.Upper += (byte) (_mem.Read(HL.Value) + getCarryFlagByte());
-            add_set_flags(AF.Upper, (byte)(_mem.Read(HL.Value) + getCarryFlagByte()));
+            AF.Upper += (byte) (_mem.Read(HL.Value) + getCarryFlagBit());
+            add_set_flags(AF.Upper, (byte)(_mem.Read(HL.Value) + getCarryFlagBit()));
 
         }
         void adc_a_n8(byte n8)
         {
-            AF.Upper += (byte)(n8 + getCarryFlagByte());
-            add_set_flags(AF.Upper, (byte)(n8 + getCarryFlagByte()));
+            AF.Upper += (byte)(n8 + getCarryFlagBit());
+            add_set_flags(AF.Upper, (byte)(n8 + getCarryFlagBit()));
         }
         void add_a_r8(byte r8)
         {
@@ -283,20 +205,20 @@ namespace GooberBoy_Emu.GameboyComponents
         void sbc_a_r8(byte r8)
         {
             AF.Upper -= r8;
-            AF.Upper -= getCarryFlagByte();
-            sub_set_flags(AF.Upper, (byte)(r8 + getCarryFlagByte()));
+            AF.Upper -= getCarryFlagBit();
+            sub_set_flags(AF.Upper, (byte)(r8 + getCarryFlagBit()));
         }
         void sbc_a_hl()
         {
             AF.Upper -= _mem.Read(HL.Value);
-            AF.Upper -= getCarryFlagByte();
-            sub_set_flags(AF.Upper, (byte)(_mem.Read(HL.Value) + getCarryFlagByte()));
+            AF.Upper -= getCarryFlagBit();
+            sub_set_flags(AF.Upper, (byte)(_mem.Read(HL.Value) + getCarryFlagBit()));
         }
         void sbc_a_n8(byte n8)
         {
             AF.Upper -= n8;
-            AF.Upper -= getCarryFlagByte();
-            sub_set_flags(AF.Upper, (byte)(n8 + getCarryFlagByte()));
+            AF.Upper -= getCarryFlagBit();
+            sub_set_flags(AF.Upper, (byte)(n8 + getCarryFlagBit()));
         }
         void sub_a_r8(byte r8)
         {
@@ -332,11 +254,247 @@ namespace GooberBoy_Emu.GameboyComponents
 
         void add_hl_r16(ushort r16)
         {
+            HL.Value += r16;
+            add_16_set_flags(HL.Value, r16);
+        }
+
+        void dec_r16(ref ushort r16)
+        {
+            r16 -= 1;
+        }
+        void inc_r16(ref ushort r16)
+        {
+            r16 += 1;
+        }
+        //------------------------------- BIT OPERATIONS INSTRUCTIONS -----------------------------//
+        void bit_u3_r8(byte u3, byte r8)
+        {
+            int result = r8 & (1 << u3);
+            setZeroFlag(result == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(true);
+        }
+
+        void bit_u3_hl(byte u3)
+        {
+            int result = _mem.Read(HL.Value) & (1 << u3);
+            setZeroFlag(result == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(true);
+        }
+
+        void res_u3_r8(byte u3, ref byte r8)
+        {
+            r8 &= (byte) ~(1 << u3);
+        }
+
+        void res_u3_hl(byte u3)
+        {
+            _mem.Write(HL.Value, (byte) (_mem.Read(HL.Value) & ~(1 << u3)));
+        }
+
+        void set_u3_r8(byte u3, byte r8)
+        {
+            r8 |= (byte) (1 << u3);
+        }
+
+        void set_u3_hl(byte u3)
+        {
+            _mem.Write(HL.Value, (byte) (_mem.Read(HL.Value) | (1 << u3)));
+        }
+
+        void swap_r8(ref byte r8)
+        {
+            r8 = (byte) ((r8 << 4) | (r8 >> 4));
+        }
+
+        void swap_hl()
+        {
+            _mem.Write((HL.Value), (byte)((_mem.Read(HL.Value) >> 4) | (_mem.Read(HL.Value) << 4))); 
+        }
+        //------------------------------- BIT SHIFT INSTRUCTIONS -----------------------------//
+
+
+        void rl_r8(ref byte r8)
+        {
+            byte carry = getCarryFlagBit();
+            setCarryFlag(r8 >> 7 > 0);
+            r8 = (byte) (r8 << 1 | carry);
+            setZeroFlag(r8 == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rl_hl()
+        {
+            byte val = _mem.Read(HL.Value);
+            byte carry = getCarryFlagBit();
+            setCarryFlag(val >> 7 > 0);
+            val = (byte) (val << 1 | carry); 
+            _mem.Write(HL.Value, val);
+            setZeroFlag(val == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+        void rla()
+        {
+            byte carry = getCarryFlagBit();
+            setCarryFlag(AF.Upper >> 7 > 0);
+            AF.Upper = (byte) (AF.Upper << 1 | carry);
+            setZeroFlag(false);
+            setHalfCarryFlag(false);
+            setNegativeFlag(false);
+        }
+
+        void rlc_r8(ref byte r8)
+        {
+            setCarryFlag(AF.Upper >> 7 > 0);
+            r8 = (byte)(r8 << 1 | r8 >> 7);
+            setZeroFlag(r8 == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rlc_hl()
+        {
+            byte val = _mem.Read(HL.Value);
+            setCarryFlag(val >> 7 > 0);
+            val = (byte) (val << 1 |  val >> 7); 
+            _mem.Write(HL.Value, val);
+            setZeroFlag(val == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rlca()
+        {
+            setCarryFlag(AF.Upper >> 7 > 0);
+            AF.Upper = (byte)(AF.Upper << 1 | AF.Upper >> 7);
+            setZeroFlag(false);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rr_r8(ref byte r8)
+        {
+            byte carry = getCarryFlagBit();
+            setCarryFlag((r8 & 1) > 0);
+            r8 = (byte) (r8 >> 1 | (carry << 7));
+            setZeroFlag(r8 == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+        void rr_hl()
+        {
+            byte val = _mem.Read(HL.Value);
+            byte carry = getCarryFlagBit();
+            setCarryFlag((val & 1) > 0);
+            val = (byte) (val >> 1 | (carry << 7));
+            _mem.Write(HL.Value, val);
+            setZeroFlag(val == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rra()
+        {
+            byte carry = getCarryFlagBit();
+            setCarryFlag((AF.Upper & 1) > 0);
+            AF.Upper = (byte) (AF.Upper >> 1 | (carry << 7));
+            setZeroFlag(false);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rrc_r8(ref byte r8)
+        {
+            setCarryFlag((r8 & 1) > 0);
+            r8 = (byte) (r8 >> 1  | r8 << 7);
+            setZeroFlag(r8 == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rrc_hl()
+        {
+            byte val = _mem.Read(HL.Value);
+            setCarryFlag((val & 1) > 0);
+            val = (byte) (val >> 1 | val << 7);
+            _mem.Write(HL.Value, val);
+            setZeroFlag(val == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
+
+        void rrc_a()
+        {
+            setCarryFlag((AF.Upper & 1) > 0);
+            AF.Upper  = (byte) (AF.Upper  >> 1 | AF.Upper << 7);
+            setZeroFlag(false);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false); 
+        }
+
+        void sla_r8(ref byte r8)
+        {
+            setCarryFlag(r8 >> 7 > 0);
+            r8 = (byte) (r8 << 1);
+            setZeroFlag(r8 == 0);
+            setHalfCarryFlag(false);
+            setNegativeFlag(false);
             
         }
 
+        void sla_hl()
+        {
+            byte val = _mem.Read(HL.Value);
+            setCarryFlag(val >> 7 > 0);
+            val = (byte) (val << 1); 
+            _mem.Write(HL.Value, val);
+            setZeroFlag(val == 0);
+            setNegativeFlag(false);
+            setHalfCarryFlag(false);
+        }
 
+        void sra_r8(ref byte r8)
+        {
+            setCarryFlag((r8 & 1) > 0);
+            r8 = (byte) (r8 >> 1 | r8 << 7);
+            setZeroFlag(r8 == 0);
+            setHalfCarryFlag(false);
+            setNegativeFlag(false);
+        }
+        
+        void sra_hl()
+        {
+            byte val = _mem.Read(HL.Value);
+            setCarryFlag((val & 1) > 0);
+            val = (byte) (val >> 1 | val << 7);
+            _mem.Write(HL.Value, val);
+            setZeroFlag(val == 0);
+            setHalfCarryFlag(false);
+            setNegativeFlag(false);
+        }
 
+        void srl_r8(ref byte r8)
+        {
+            setCarryFlag((r8 & 1) > 0);
+            r8 = (byte) (r8 >> 1);
+            setZeroFlag(r8 == 0);
+            setHalfCarryFlag(false);
+            setNegativeFlag(false);
+        }
+
+        void srl_hl()
+        {
+            byte val = _mem.Read(HL.Value);
+            setCarryFlag((val & 1) > 0);
+            val = (byte) (val >> 1);
+            _mem.Write(HL.Value, val);
+            setZeroFlag(val == 0);
+            setHalfCarryFlag(false);
+            setNegativeFlag(false);
+        }
         //------------------------------- LOAD FUNCTIONS -----------------------------//
         //Loads register to register
         void load_r8_r8(ref byte r, byte s)
@@ -349,25 +507,27 @@ namespace GooberBoy_Emu.GameboyComponents
             r8 = n8;
         }
         //Loads 16 bit immediate to registers 
-        void load_r16_n16(GBRegister r, ushort n16)
+        void load_r16_n16(ushort r16, ushort n16)
         {
-            r.Value = n16;
+            r16 = n16;
         }
         //Load 16 bit register value into memory
-        void load_mem_r8(ushort addr, byte r8)
+        void load_hl_r8(byte r8)
         {
-            _mem.Write(addr, r8);
+            _mem.Write(HL.Value, r8);
+        }
+        void load_hl_n8(byte n8)
+        {
+            _mem.Write(HL.Value, n8);
         }
         //Load
-        void load_r8_mem(ref byte r8, ushort addr)
+        void load_r8_hl(ref byte r8)
         {
-            r8 = _mem.Read(addr);
+            r8 = _mem.Read(HL.Value);
         }
-        void load_mem_n8(ushort addr, byte n8)
-        {
-            _mem.Write(addr, n8);
-        }
-
+        
+        
+        // OTHER HELPER FUNCS
         byte get_immediate_8()
         {
             return _mem.Read((ushort)(PC.Value + 1));
@@ -442,19 +602,19 @@ namespace GooberBoy_Emu.GameboyComponents
             return (AF.Lower & (1 << 6)) > 0;
         }
 
-        byte getZeroFlagByte()
+        byte getZeroFlagBit()
         {
             return (byte)((AF.Lower & (1 << 7)) >> 7);
         }
-        byte getCarryFlagByte()
+        byte getCarryFlagBit()
         {
             return (byte)((AF.Lower & (1 << 4)) >> 4);
         }
-        byte getHalfCarryFlagByte()
+        byte getHalfCarryFlagBit()
         {
             return (byte)((AF.Lower & (1 << 5)) >> 5);
         }
-        byte getNegativeFlagByte()
+        byte getNegativeFlagBit()
         {
             return (byte)((AF.Lower & (1 << 6)) >> 6);
         }
